@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Fast French Lab — Day 7A</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#F8F9FC;color:#111827;min-height:100vh;font-size:16px;overflow-x:hidden}
+:root{
+  --i:#4F46E5;--i2:#6366F1;--ib:#EEF2FF;--il:#F5F5FF;
+  --t:#0D9488;--tb:#CCFBF1;--tl:#F0FDFA;
+  --g:#D97706;--gb:#FEF3C7;
+  --gn:#059669;--gnb:#D1FAE5;
+  --r:#DC2626;--rb:#FEE2E2;
+  --gy:#6B7280;--b:#E5E7EB;--wh:#fff;--dk:#111827;--md:#374151;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  --sh2:0 8px 32px rgba(79,70,229,.15);
+}
+/* HEADER */
+.hdr{background:#fff;border-bottom:1px solid var(--b);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.logo{font-weight:900;font-size:.88rem;letter-spacing:1.5px;color:var(--dk)}.logo em{color:var(--i);font-style:normal}
+.day-pill{background:linear-gradient(135deg,var(--i),#7C3AED);color:#fff;border-radius:50px;padding:4px 14px;font-size:.72rem;font-weight:800}
+.prog-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.prog-lbl{font-size:.56rem;color:var(--gy);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.prog-rail{width:100px;height:4px;background:var(--b);border-radius:10px}
+.prog-bar{height:4px;background:linear-gradient(90deg,var(--i),#7C3AED);border-radius:10px;transition:width .5s ease;width:0%}
+/* LAYOUT */
+.wrap{max-width:680px;margin:0 auto;padding:16px 13px 90px}
+.dots{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.dot{width:32px;height:32px;border-radius:50%;background:#F3F4F6;color:var(--gy);display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:700;cursor:pointer;transition:all .25s;border:2px solid transparent;min-height:44px;min-width:44px}
+.dot.active{background:var(--i);color:#fff;border-color:var(--i2);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.dot.done{background:var(--gnb);color:var(--gn);border-color:#6EE7B7}
+.sec{display:none}.sec.show{display:block;animation:slideUp .35s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border-radius:18px;padding:20px;margin-bottom:14px;border:1px solid var(--b);box-shadow:var(--sh)}
+.chdr{display:flex;align-items:center;gap:11px;padding-bottom:13px;border-bottom:1px solid #F3F4F6;margin-bottom:16px}
+.cico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.ctit{font-size:.98rem;font-weight:800;color:var(--dk)}.csub{font-size:.72rem;color:var(--gy);margin-top:2px;line-height:1.4}
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:50px;padding:4px 12px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.b-i{background:var(--ib);color:var(--i)}.b-t{background:var(--tb);color:var(--t)}.b-g{background:var(--gb);color:var(--g)}.b-gn{background:var(--gnb);color:var(--gn)}.b-r{background:var(--rb);color:var(--r)}
+.info{background:var(--il);border:1.5px solid #C7D2FE;border-radius:12px;padding:12px 14px;margin-bottom:13px;font-size:.81rem;color:var(--dk);line-height:1.6}
+.info strong{color:var(--i)}
+/* EXPRESSION CARDS */
+.expr-card{background:#fff;border:1.5px solid var(--b);border-radius:16px;padding:16px;margin-bottom:12px;transition:all .25s;position:relative;overflow:hidden}
+.expr-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--i),var(--t));border-radius:4px 0 0 4px}
+.expr-card:hover{border-color:#C7D2FE;box-shadow:var(--sh2)}
+.expr-fr{font-size:1.1rem;font-weight:800;color:var(--dk);margin-bottom:3px;line-height:1.4}
+.expr-ipa{font-size:.78rem;color:var(--gy);font-style:italic;margin-bottom:3px}
+.expr-en{font-size:.82rem;color:var(--i);font-weight:600;margin-bottom:6px;filter:blur(4px);transition:filter .3s;cursor:pointer}
+.expr-en.show{filter:none}
+.expr-tone{font-size:.72rem;background:var(--gb);color:#92400E;border-radius:8px;padding:4px 10px;font-weight:600;display:inline-block;margin-bottom:9px}
+/* STT */
+.stt-box{background:#FAFAFA;border:2px dashed var(--b);border-radius:12px;padding:12px 14px;margin-top:9px;transition:all .3s;min-height:50px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;font-size:.88rem;color:var(--md);text-align:center}
+.stt-box.listening{border-color:var(--r);background:#FFF5F5;animation:border-glow 1.5s infinite}
+@keyframes border-glow{0%,100%{border-color:var(--r)}50%{border-color:#FCA5A5}}
+.w-ok{color:var(--gn);font-weight:700;background:var(--gnb);border-radius:5px;padding:1px 6px}
+.w-so{color:var(--g);font-weight:700;background:var(--gb);border-radius:5px;padding:1px 6px}
+.w-bad{color:var(--r);font-weight:700;background:var(--rb);border-radius:5px;padding:1px 6px;text-decoration:underline dotted}
+.stt-fb{margin-top:9px;padding:9px 13px;border-radius:10px;font-size:.79rem;font-weight:600;display:none;line-height:1.5}
+.stt-fb.show{display:block}
+.fb-ex{background:#D1FAE5;color:#065F46}.fb-gd{background:var(--gb);color:#92400E}.fb-try{background:var(--ib);color:#4338CA}
+/* WAVEFORM */
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:36px}
+.wf-b{width:3px;height:6px;background:var(--i);border-radius:3px;transition:height .1s ease}
+.waveform.active .wf-b{animation:wv .8s ease-in-out infinite}
+@keyframes wv{0%,100%{height:4px}50%{height:28px}}
+.wf-b:nth-child(2){animation-delay:.07s}.wf-b:nth-child(3){animation-delay:.14s}.wf-b:nth-child(4){animation-delay:.21s}.wf-b:nth-child(5){animation-delay:.28s}.wf-b:nth-child(6){animation-delay:.35s}.wf-b:nth-child(7){animation-delay:.28s}.wf-b:nth-child(8){animation-delay:.21s}.wf-b:nth-child(9){animation-delay:.14s}.wf-b:nth-child(10){animation-delay:.07s}
+/* NEGATION */
+.neg-demo{border-radius:14px;padding:15px;margin-bottom:12px;position:relative;overflow:hidden}
+.nd-pos{background:linear-gradient(135deg,var(--gnb),#ECFDF5);border:1.5px solid #6EE7B7}
+.nd-neg{background:linear-gradient(135deg,var(--rb),#FFF5F5);border:1.5px solid #FCA5A5;margin-top:8px}
+.nd-tag{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.nd-sent{font-size:1rem;font-weight:700;color:var(--dk);line-height:1.5}
+.ne-hl{color:var(--r);font-weight:900;background:var(--rb);border-radius:5px;padding:0 4px}
+.pas-hl{color:var(--i);font-weight:900;background:var(--ib);border-radius:5px;padding:0 4px}
+/* DRAG & DROP */
+.word-bank{display:flex;flex-wrap:wrap;gap:7px;min-height:44px;padding:10px;background:#F9FAFB;border-radius:12px;border:1.5px dashed var(--b);margin-bottom:12px}
+.word-chip{background:var(--i);color:#fff;border-radius:50px;padding:6px 14px;font-size:.84rem;font-weight:700;cursor:grab;user-select:none;transition:all .2s;min-height:36px;display:inline-flex;align-items:center}
+.word-chip:hover{background:var(--i2);transform:scale(1.04)}
+.word-chip.used{opacity:.3;pointer-events:none}
+.drop-zone{display:flex;flex-wrap:wrap;gap:7px;min-height:54px;padding:10px;background:var(--il);border-radius:12px;border:2px dashed #C7D2FE;margin-bottom:12px;align-items:center;transition:all .2s}
+.drop-zone.over{border-color:var(--i);background:var(--ib)}
+.dropped-chip{background:#fff;border:2px solid var(--i);color:var(--i);border-radius:50px;padding:6px 12px;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:36px}
+/* HOBBIES */
+.hobby-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:480px){.hobby-grid{grid-template-columns:repeat(3,1fr)}}
+.hobby-card{background:#fff;border:1.5px solid var(--b);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.hobby-card:hover{border-color:var(--i);transform:translateY(-2px);box-shadow:var(--sh2)}
+.hobby-card.active{border-color:var(--i);background:var(--il)}
+.hc-ico{font-size:2rem;margin-bottom:6px}
+.hc-fr{font-size:.85rem;font-weight:800;color:var(--dk)}
+.hc-sentence{font-size:.72rem;color:var(--i);font-weight:600;margin-top:3px;line-height:1.4}
+.hc-en{font-size:.68rem;color:var(--gy);margin-top:2px;filter:blur(3px);transition:filter .3s;cursor:pointer}
+.hc-en.reveal{filter:none}
+/* FAIRE TABLE */
+.faire-table{width:100%;border-collapse:collapse;font-size:.86rem;margin:12px 0}
+.faire-table th{background:linear-gradient(135deg,var(--i),#7C3AED);color:#fff;padding:8px 10px;text-align:left;font-size:.78rem}
+.faire-table td{padding:8px 10px;border-bottom:1px solid #F3F4F6}
+.faire-table tr:nth-child(even) td{background:var(--il)}
+.ft-form{font-weight:800;color:var(--i);font-size:.95rem}
+.ft-irr{font-size:.68rem;color:var(--r);font-weight:700;background:var(--rb);border-radius:4px;padding:1px 5px;margin-left:4px}
+/* DIALOGUE */
+.scene-box{background:linear-gradient(135deg,#1F2937,#111827);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:center;color:#fff}
+.dial-bub{display:flex;gap:9px;margin-bottom:12px;align-items:flex-start}
+.dial-bub.r{flex-direction:row-reverse}
+.dav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0;font-family:'Inter',sans-serif}
+.da1{background:#DBEAFE;color:#1D4ED8}.da2{background:#FCE7F3;color:#9D174D}.da3{background:#D1FAE5;color:#065F46}
+.bbl{border-radius:14px;padding:11px 13px;max-width:340px}
+.bb1{background:#EFF6FF;border:1px solid #BFDBFE}.bb2{background:#FDF2F8;border:1px solid #FBCFE8}.bb3{background:#ECFDF5;border:1px solid #A7F3D0}
+.bfr{font-weight:700;color:var(--dk);font-size:.88rem;line-height:1.5}
+.ben{font-size:.73rem;color:var(--gy);margin-top:2px}
+.bfill{font-size:.69rem;color:var(--i);font-weight:600;margin-top:3px;font-style:italic}
+.bemo{font-size:.68rem;color:var(--g);font-weight:700;margin-top:2px}
+/* DICTATION */
+.dict-card{background:#fff;border:1.5px solid var(--b);border-radius:14px;padding:15px;margin-bottom:12px}
+.dict-inp{width:100%;border:2px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:'Inter',sans-serif;outline:none;min-height:44px;transition:border-color .2s;color:var(--dk)}
+.dict-inp:focus{border-color:var(--i)}
+.dict-inp.ok{border-color:var(--gn);background:var(--gnb)}.dict-inp.bad{border-color:var(--r);background:var(--rb)}
+/* TIMED WRITING */
+.timer-display{font-size:2.8rem;font-weight:900;color:var(--i);text-align:center;margin:8px 0;font-variant-numeric:tabular-nums;transition:color .3s}
+.timer-display.urgent{color:var(--r);animation:tpu 1s infinite}
+@keyframes tpu{0%,100%{opacity:1}50%{opacity:.6}}
+.timer-rail{height:8px;background:var(--b);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.timer-fill{height:8px;background:linear-gradient(90deg,var(--gn),var(--i));border-radius:10px;transition:width 1s linear}
+.timed-area{width:100%;border:2px solid var(--b);border-radius:12px;padding:12px;font-size:.9rem;font-family:'Inter',sans-serif;min-height:160px;outline:none;resize:none;transition:border-color .2s;line-height:1.7;color:var(--dk)}
+.timed-area:focus{border-color:var(--i)}
+/* SENTENCE BUILDER */
+.sb-card{background:linear-gradient(135deg,var(--il),#F0FDFA);border:1.5px solid #C7D2FE;border-radius:14px;padding:14px;margin-bottom:11px}
+.sb-starter{font-size:1.05rem;font-weight:800;color:var(--i);margin-bottom:4px}
+.sb-hint{font-size:.75rem;color:var(--gy);margin-bottom:9px;line-height:1.45}
+.sb-inp{width:100%;border:2px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:'Inter',sans-serif;outline:none;min-height:44px;transition:border-color .2s;color:var(--dk)}
+.sb-inp:focus{border-color:var(--i)}
+.sb-fb{margin-top:8px;padding:9px 12px;border-radius:9px;font-size:.78rem;font-weight:600;display:none;line-height:1.5}
+.sb-fb.show{display:block}
+/* MIRROR */
+.mirror-card{background:#fff;border:1.5px solid var(--b);border-radius:14px;padding:15px;margin-bottom:11px;transition:all .2s}
+.mirror-card:hover{border-color:var(--i)}
+.mir-num{font-size:.62rem;font-weight:800;color:var(--i);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.mir-fr{font-size:.95rem;font-weight:700;color:var(--dk);margin-bottom:2px;line-height:1.5}
+.mir-en{font-size:.73rem;color:var(--gy);margin-bottom:8px;filter:blur(4px);transition:filter .3s;cursor:pointer;user-select:none}
+.mir-en.show{filter:none}
+.mir-note{font-size:.71rem;background:var(--gb);color:#92400E;border-radius:7px;padding:5px 9px;margin-bottom:9px;font-weight:600;line-height:1.4}
+/* FILL */
+.fill-wrap{background:var(--il);border-radius:12px;padding:13px;margin-bottom:10px;border:2px solid transparent;transition:border-color .3s}
+.fill-wrap.ok{border-color:var(--gn)}.fill-wrap.bad{border-color:var(--r)}
+.fill-q{font-size:.9rem;color:var(--dk);font-weight:600;line-height:1.8;margin-bottom:8px}
+.fill-inp{border:2px solid var(--b);border-radius:8px;padding:5px 10px;font-size:.9rem;font-family:'Inter',sans-serif;outline:none;min-width:80px;max-width:200px;min-height:38px;vertical-align:middle;transition:border-color .2s;display:inline-block}
+.fill-inp:focus{border-color:var(--i)}
+.fill-inp.ok{border-color:var(--gn);background:var(--gnb)}.fill-inp.bad{border-color:var(--r);background:var(--rb)}
+.fill-fb{font-size:.77rem;margin-top:6px;font-weight:700;display:none;line-height:1.5}
+/* BUTTONS */
+.btn{border:none;border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-i{background:var(--i);color:#fff;min-height:46px;padding:0 22px;font-size:.84rem}.btn-i:hover{background:var(--i2)}
+.btn-t{background:var(--t);color:#fff;min-height:44px;padding:0 20px;font-size:.82rem}.btn-t:hover{background:#0F766E}
+.btn-o{background:#fff;color:var(--i);border:2px solid var(--i);min-height:44px;padding:0 20px;font-size:.82rem}.btn-o:hover{background:var(--il)}
+.btn-gn{background:var(--gn);color:#fff;min-height:44px;padding:0 20px;font-size:.82rem}
+.btn-mic{background:var(--r);color:#fff;min-height:46px;padding:0 18px;font-size:.84rem}
+.btn-mic.on{animation:mp 1.2s infinite}
+@keyframes mp{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 12px rgba(220,38,38,0)}}
+.btn-pb{background:var(--gn);color:#fff;border:none;border-radius:50px;min-height:42px;padding:0 16px;font-size:.8rem;font-weight:700;cursor:pointer;display:none;align-items:center;gap:5px;font-family:'Inter',sans-serif}
+.btn-pb.show{display:inline-flex}
+.redo-btn{background:#F3F4F6;color:var(--gy);border:none;border-radius:50px;padding:7px 15px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:4px}
+.redo-btn:hover{background:var(--b)}
+.aud-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;align-items:center}
+/* NAV */
+.nav-bar{display:flex;justify-content:space-between;margin-top:20px;gap:10px}
+.btn-nxt{background:linear-gradient(135deg,var(--i),#7C3AED);color:#fff;border:none;border-radius:50px;min-height:50px;padding:0 28px;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;box-shadow:var(--sh2)}
+.btn-nxt:hover{transform:translateY(-1px)}
+.btn-prv{background:#fff;color:var(--dk);border:1.5px solid var(--b);border-radius:50px;min-height:48px;padding:0 22px;font-size:.86rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-prv:hover{border-color:var(--i);color:var(--i)}
+.ss-box{background:linear-gradient(135deg,var(--il),var(--tl));border:1.5px solid #C7D2FE;border-radius:14px;padding:15px;text-align:center;margin-top:14px}
+/* COMPLETION */
+.complete-band{background:linear-gradient(135deg,var(--i),#7C3AED,var(--t));border-radius:18px;padding:24px 18px;text-align:center;color:#fff;margin-bottom:14px}
+/* CONFETTI */
+.cf-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none}
+.cf{position:absolute;width:8px;height:8px;border-radius:2px;animation:fall 2.5s ease forwards}
+@keyframes fall{0%{opacity:1;transform:translateY(-10px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+/* SCORE CARD */
+.score-card{background:#fff;border:1.5px solid var(--b);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.sk-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.sk-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.sk-bar{height:6px;background:var(--b);border-radius:10px;overflow:hidden;margin-top:4px}
+.sk-fill{height:6px;border-radius:10px;transition:width 1.2s ease .3s}
+/* VOCAB CHIPS */
+.vocab-bank{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.vc{background:#fff;border:1.5px solid var(--b);border-radius:50px;padding:5px 13px;font-size:.8rem;font-weight:700;color:var(--dk);cursor:pointer;transition:all .2s}
+.vc:hover{border-color:var(--i);background:var(--il);color:var(--i)}
+/* COACH */
+.coach-wrap{position:fixed;bottom:15px;right:13px;z-index:300;display:flex;flex-direction:column;align-items:flex-end}
+.coach-av{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--i),#7C3AED);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;animation:float 3s ease-in-out infinite;box-shadow:var(--sh2)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.coach-msg{background:#fff;border-radius:14px;border:1.5px solid #C7D2FE;padding:10px 13px;max-width:210px;margin-bottom:8px;box-shadow:0 4px 20px rgba(0,0,0,.1);font-size:.77rem;color:var(--dk);line-height:1.5;display:none}
+.coach-msg.show{display:block;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* WRITE TASK */
+.write-prompt{background:var(--gb);border:1.5px solid #FCD34D;border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.wp-lbl{font-size:.62rem;font-weight:800;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.wp-text{font-size:.86rem;font-weight:700;color:var(--dk);line-height:1.5;margin-bottom:4px}
+.wp-hint{font-size:.73rem;color:#92400E;line-height:1.5}
+.write-inp{width:100%;border:2px solid var(--b);border-radius:11px;padding:11px 12px;font-size:.88rem;font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:90px;transition:border-color .2s;line-height:1.7;color:var(--dk)}
+.write-inp:focus{border-color:var(--i)}
+.write-fb{margin-top:8px;padding:10px 13px;border-radius:10px;font-size:.79rem;font-weight:600;display:none;line-height:1.5}
+.write-fb.show{display:block}
+</style>
+</head>
+<body>
+<div id="cfWrap" class="cf-wrap"></div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">FAST <em>FRENCH</em> LAB</div>
+  <div class="prog-wrap"><div class="prog-lbl">Day 7A Progress</div><div class="prog-rail"><div class="prog-bar" id="progBar"></div></div></div>
+  <div class="day-pill">🗣️ DAY 7A</div>
+</div>
+
+<div class="wrap">
+<div class="dots" id="dotsWrap"></div>
+
+<!-- ====== SEC 1: DAILY SPEAKING LAB ====== -->
+<div class="sec show" id="sec1">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--il)">🗣️</div><div><div class="ctit">Daily Speaking Lab</div><div class="csub">Activity 1 of 7 · Everyday expressions · Speak with emotion · Speech-to-text live</div></div></div>
+  <div class="badge b-i">🎤 Speaking Lab — Active Mic</div>
+  <div class="info">🎯 <strong>Today's goal:</strong> Speak every expression out loud — with the right emotion! Real French is emotional. These expressions should feel natural, not robotic. The computer will show you what it heard.</div>
+  <div id="exprCards"></div>
+</div>
+<div class="nav-bar"><div></div><button class="btn-nxt btn" onclick="goSec(2)">Negation →</button></div>
+</div>
+
+<!-- ====== SEC 2: NEGATION ====== -->
+<div class="sec" id="sec2">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--ib)">🚫</div><div><div class="ctit">Beginner Negation — ne…pas</div><div class="csub">Activity 2 of 7 · Transform sentences · Build negative French · Drag & drop</div></div></div>
+  <div class="badge b-i">🚫 Negation: ne…pas</div>
+
+  <div class="info">In French, to say "not", you put <strong>ne</strong> BEFORE the verb and <strong>pas</strong> AFTER. It's like a sandwich around the verb! 🥪<br><span style="color:var(--i)">Je parle</span> → <span style="color:var(--r)">Je <strong>ne</strong> parle <strong>pas</strong></span></div>
+
+  <!-- VISUAL BREAKDOWN -->
+  <div style="background:linear-gradient(135deg,#F5F5FF,#EEF2FF);border-radius:14px;padding:16px;margin-bottom:14px">
+    <div style="font-size:.78rem;font-weight:800;color:var(--i);margin-bottom:12px">🎨 The NE…PAS Sandwich — Visual Formula:</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;font-size:.88rem;font-weight:700">
+      <div style="background:#fff;border:2px solid var(--b);border-radius:9px;padding:7px 12px;color:var(--dk)">SUBJECT</div>
+      <div style="color:var(--gy)">+</div>
+      <div style="background:var(--rb);border:2px solid #FCA5A5;border-radius:9px;padding:7px 12px;color:var(--r)">NE</div>
+      <div style="color:var(--gy)">+</div>
+      <div style="background:var(--ib);border:2px solid #C7D2FE;border-radius:9px;padding:7px 12px;color:var(--i)">VERB</div>
+      <div style="color:var(--gy)">+</div>
+      <div style="background:var(--rb);border:2px solid #FCA5A5;border-radius:9px;padding:7px 12px;color:var(--r)">PAS</div>
+    </div>
+    <div style="text-align:center;font-size:.75rem;color:var(--gy);margin-top:8px">⚠️ When the verb starts with a vowel: ne → n' (j'habite → je n'habite pas)</div>
+  </div>
+
+  <!-- EXAMPLES -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin-bottom:10px">📚 Learn These Negative Sentences:</div>
+  <div id="negDemos"></div>
+
+  <!-- DRAG & DROP -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin:16px 0 10px">🧩 Build the Sentence — Drag words into the correct order:</div>
+  <div id="dragEx"></div>
+
+  <!-- TRANSFORMATION FILLS -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin:16px 0 10px">✏️ Transform to Negative — Fill in ne and pas:</div>
+  <div id="negFills"></div>
+  <div class="aud-row">
+    <button class="btn-gn btn" onclick="checkNegFills()">✅ Check Negations</button>
+    <button class="redo-btn" onclick="resetNegFills()">🔄 Redo</button>
+  </div>
+  <div id="negFillFb" style="display:none;margin-top:10px;padding:10px 13px;border-radius:10px;font-size:.8rem;font-weight:700"></div>
+
+  <!-- SPEAKING -->
+  <div style="margin-top:16px;background:var(--il);border-radius:12px;padding:13px">
+    <div style="font-size:.76rem;font-weight:800;color:var(--i);margin-bottom:8px">🎤 Mirror Practice — Say each negative sentence:</div>
+    <div id="negMirrors"></div>
+  </div>
+</div>
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(1)">← Back</button><button class="btn-nxt btn" onclick="goSec(3)">Hobbies →</button></div>
+</div>
+
+<!-- ====== SEC 3: HOBBIES + FAIRE ====== -->
+<div class="sec" id="sec3">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--gb)">⚽</div><div><div class="ctit">Hobbies + Le Verbe FAIRE</div><div class="csub">Activity 3 of 7 · Hobbies vocabulary · Faire conjugation · Rich sentences</div></div></div>
+  <div class="badge b-g">⚽ Hobbies + Faire</div>
+
+  <div class="info">🎯 In French, many activities use the verb <strong>FAIRE</strong> (to do/make). It's irregular — you MUST memorise these forms. <strong>Faire</strong> is one of the most important verbs in French!</div>
+
+  <!-- FAIRE TABLE -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin-bottom:10px">📋 FAIRE — Conjugation (Irregular!):</div>
+  <table class="faire-table">
+    <tr><th>Pronoun</th><th>FAIRE</th><th>English</th><th>Listen + Say</th></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Je</td><td><span class="ft-form">fais</span></td><td style="color:var(--gy);font-size:.8rem">I do/make</td><td id="ft0"></td></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Tu</td><td><span class="ft-form">fais</span></td><td style="color:var(--gy);font-size:.8rem">you do</td><td id="ft1"></td></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Il/Elle</td><td><span class="ft-form">fait</span></td><td style="color:var(--gy);font-size:.8rem">he/she does</td><td id="ft2"></td></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Nous</td><td><span class="ft-form">faisons</span><span class="ft-irr">⚠️ irregular!</span></td><td style="color:var(--gy);font-size:.8rem">we do</td><td id="ft3"></td></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Vous</td><td><span class="ft-form">faites</span><span class="ft-irr">⚠️ irregular!</span></td><td style="color:var(--gy);font-size:.8rem">you do (formal)</td><td id="ft4"></td></tr>
+    <tr><td style="font-weight:700;color:var(--dk)">Ils/Elles</td><td><span class="ft-form">font</span><span class="ft-irr">⚠️ totally different!</span></td><td style="color:var(--gy);font-size:.8rem">they do</td><td id="ft5"></td></tr>
+  </table>
+
+  <!-- DU/DE LA RULE -->
+  <div style="background:linear-gradient(135deg,var(--gb),#FFFBEB);border:1.5px solid #FCD34D;border-radius:12px;padding:13px;margin-bottom:14px">
+    <div style="font-size:.76rem;font-weight:800;color:var(--g);margin-bottom:6px">⚽ FAIRE + du / de la / de l' — The Hobby Rule:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:.78rem">
+      <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;border:1px solid #FCD34D"><strong>DU</strong> (masculine)<br><span style="color:var(--gy)">faire du sport<br>faire du football</span></div>
+      <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;border:1px solid #FCD34D"><strong>DE LA</strong> (feminine)<br><span style="color:var(--gy)">faire de la danse<br>faire de la musique</span></div>
+      <div style="background:#fff;border-radius:8px;padding:8px;text-align:center;border:1px solid #FCD34D"><strong>DE L'</strong> (vowel)<br><span style="color:var(--gy)">faire de l'art<br>faire de l'athlétisme</span></div>
+    </div>
+  </div>
+
+  <!-- HOBBY CARDS -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin-bottom:10px">🎯 Tap a hobby to hear it and see the full sentence:</div>
+  <div class="hobby-grid" id="hobbyGrid"></div>
+
+  <!-- SENTENCE BUILDER -->
+  <div style="background:var(--il);border-radius:13px;padding:14px;margin-top:4px">
+    <div style="font-size:.76rem;font-weight:800;color:var(--i);margin-bottom:8px">💪 Build a RICHER hobby sentence — don't stop at the basics!</div>
+    <div style="font-size:.78rem;color:var(--md);margin-bottom:10px;line-height:1.55">
+      <strong>Basic:</strong> Je fais du football.<br>
+      <strong>Better:</strong> Je fais souvent du football.<br>
+      <strong>Best (A1 goal):</strong> Je fais souvent du football avec mes amis. C'est amusant!
+    </div>
+    <textarea class="write-inp" id="hobbySentence" rows="3" placeholder="Write your own rich hobby sentence here..." oninput="updateHobbyWC()"></textarea>
+    <div style="font-size:.68rem;color:var(--gy);text-align:right;margin-top:3px" id="hobbyWC">0 words</div>
+    <div class="aud-row" style="margin-top:8px;gap:6px">
+      <button class="btn-gn btn" onclick="checkHobbySent()">✅ Check</button>
+      <button class="btn-t btn" onclick="spkText(document.getElementById('hobbySentence').value,this)">🔊 Hear</button>
+      <button class="redo-btn" onclick="document.getElementById('hobbySentence').value='';updateHobbyWC()">🔄</button>
+    </div>
+    <div id="hobbyFb" class="sb-fb"></div>
+  </div>
+</div>
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(2)">← Back</button><button class="btn-nxt btn" onclick="goSec(4)">Dialogues →</button></div>
+</div>
+
+<!-- ====== SEC 4: REALISTIC DIALOGUES ====== -->
+<div class="sec" id="sec4">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:#ECFDF5">💬</div><div><div class="ctit">Real Conversations</div><div class="csub">Activity 4 of 7 · Hobbies · Negation · Emotion · Filler words</div></div></div>
+  <div class="badge b-gn">💬 Real Conversations</div>
+
+  <div class="info">🎭 <strong>French conversations are emotional!</strong> Native speakers use filler words, reactions, and emotion constantly. Notice how natural these dialogues sound — and then practise the same way!</div>
+
+  <!-- FILLER WORDS -->
+  <div style="background:linear-gradient(135deg,#F5F5FF,#F0FDFA);border-radius:13px;padding:13px;margin-bottom:14px">
+    <div style="font-size:.74rem;font-weight:800;color:var(--i);margin-bottom:8px">🇫🇷 French Filler Words — Make You Sound Natural:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <div id="fillerGrid"></div>
+    </div>
+  </div>
+
+  <div id="dialContent"></div>
+
+  <!-- MIRROR -->
+  <div style="background:var(--il);border-radius:13px;padding:13px;margin-top:14px">
+    <div style="font-size:.75rem;font-weight:800;color:var(--i);margin-bottom:8px">🪞 Shadow These Lines:</div>
+    <div id="dialMirrors"></div>
+  </div>
+</div>
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(3)">← Back</button><button class="btn-nxt btn" onclick="goSec(5)">Dictation →</button></div>
+</div>
+
+<!-- ====== SEC 5: DICTATION ====== -->
+<div class="sec" id="sec5">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--tb)">🎧</div><div><div class="ctit">Listening Dictation</div><div class="csub">Activity 5 of 7 · Listen · Type · Spelling feedback · Retry</div></div></div>
+  <div class="badge b-t">🎧 Dictation Active</div>
+
+  <div class="info">👂 <strong>How it works:</strong> Press LISTEN. Write exactly what you hear. Press Check. The computer will show you any spelling, accent or punctuation errors. Retry as many times as you need!</div>
+
+  <div id="dictCards"></div>
+</div>
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(4)">← Back</button><button class="btn-nxt btn" onclick="goSec(6)">Timed Writing →</button></div>
+</div>
+
+<!-- ====== SEC 6: TIMED WRITING + SENTENCE BUILDER ====== -->
+<div class="sec" id="sec6">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--gb)">⏱️</div><div><div class="ctit">Timed Writing + Sentence Builder</div><div class="csub">Activity 6 of 7 · 3-minute timed copy · Then build YOUR own sentences</div></div></div>
+  <div class="badge b-g">⏱️ Timed Challenge</div>
+
+  <!-- PARAGRAPH TO COPY -->
+  <div style="font-size:.82rem;font-weight:800;color:var(--dk);margin-bottom:10px">📋 Copy This Paragraph Before the Timer Runs Out:</div>
+  <div style="background:#fff;border:1.5px solid var(--b);border-radius:13px;padding:15px;margin-bottom:14px;font-size:.88rem;color:var(--md);line-height:1.8;border-left:4px solid var(--i)" id="timedTarget">
+    Bonjour ! Je m'appelle Amara. J'aime la musique et je fais souvent de la danse. Je n'aime pas les jeux vidéo — c'est ennuyeux ! Mon frère fait du football tous les week-ends. Il est très sportif. Nous faisons parfois de la musique ensemble. C'est super !
+  </div>
+  <button class="btn-t btn" style="margin-bottom:12px" onclick="spkText('Bonjour! Je m\'appelle Amara. J\'aime la musique et je fais souvent de la danse. Je n\'aime pas les jeux vidéo — c\'est ennuyeux! Mon frère fait du football tous les week-ends. Il est très sportif. Nous faisons parfois de la musique ensemble. C\'est super!',this)">🔊 Hear Paragraph</button>
+
+  <div style="text-align:center;font-size:.8rem;color:var(--md);font-weight:700;margin-bottom:6px">⏱️ 3-minute timer:</div>
+  <div class="timer-display" id="timerDisp">3:00</div>
+  <div class="timer-rail"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+  <div style="display:flex;gap:9px;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn-i btn" id="timerStart" onclick="startTimer()">▶️ Start Timer</button>
+    <button class="btn-o btn" id="timerReset" onclick="resetTimer()" style="display:none">🔄 Reset</button>
+  </div>
+  <textarea class="timed-area" id="timedArea" placeholder="Start copying here when you press Start..." oninput="updateTimedWC()"></textarea>
+  <div style="font-size:.7rem;color:var(--gy);text-align:right;margin-top:3px" id="timedWC">0 words</div>
+  <div id="timedResult" style="display:none;margin-top:12px"></div>
+
+  <!-- SENTENCE BUILDER -->
+  <div style="font-size:.88rem;font-weight:800;color:var(--dk);margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--b)">🏗️ Build YOUR Own Sentences — Use the starters below:</div>
+  <div class="info" style="margin-bottom:12px">💡 Don't just write the minimum. Add adjectives, emotions, locations, frequency! Every extra word is TCF/TEF practice.</div>
+  <div id="sentenceBuilder"></div>
+</div>
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(5)">← Back</button><button class="btn-nxt btn" onclick="goSec(7)">Mirror Lab →</button></div>
+</div>
+
+<!-- ====== SEC 7: MIRROR LAB + SCORE ====== -->
+<div class="sec" id="sec7">
+<div class="card">
+  <div class="chdr"><div class="cico" style="background:var(--il)">🪞</div><div><div class="ctit">Mirror Speaking Lab — 15 Sentences</div><div class="csub">Activity 7 of 7 · Listen · Repeat · Record · Hear Yourself</div></div></div>
+  <div class="badge b-i">🪞 15 Mirror Practices</div>
+  <div class="info">🎤 <strong>Listen carefully, then say it OUT LOUD before recording.</strong> Press ▶️ Hear Me to compare your voice to the native speaker. The goal isn't perfection — it's speaking!</div>
+  <div id="mirrorCards"></div>
+</div>
+
+<!-- SCORE CARD -->
+<div class="score-card" id="dayScoreCard"></div>
+
+<div class="ss-box">
+  <div style="font-size:.8rem;font-weight:800;color:var(--dk);margin-bottom:6px">📸 Screenshot Your Writing & Share</div>
+  <div style="font-size:.74rem;color:var(--gy);margin-bottom:10px;line-height:1.5">Copy your best sentence from today and post it in the Fast French Lab community for coach corrections!</div>
+  <button class="btn-i btn" onclick="copyBest()">📋 Copy My Best Work</button>
+  <div id="copyFb" style="display:none;margin-top:8px;font-size:.76rem;color:var(--gn);font-weight:700">✅ Copied! Go post in the community with: "Day 7A — please correct 🙏"</div>
+</div>
+
+<div class="nav-bar"><button class="btn-prv btn" onclick="goSec(6)">← Back</button><button class="btn-nxt btn" style="background:linear-gradient(135deg,var(--gn),#047857)" onclick="showComplete()">🎉 Complete Day 7A</button></div>
+</div>
+
+</div><!-- end wrap -->
+
+<!-- COACH -->
+<div class="coach-wrap">
+  <div class="coach-msg" id="coachMsg"></div>
+  <div class="coach-av" onclick="toggleCoach()">👩🏾‍🏫</div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const EXPRESSIONS=[
+  {fr:"Où sont les toilettes ?",ipa:"[u sɔ̃ le twalɛt]",en:"Where are the toilets?",tone:"😰 Say it like you REALLY need to go — urgently!",targets:["où","sont","les","toilettes"]},
+  {fr:"Ouvre la porte.",ipa:"[uvʁ la pɔʁt]",en:"Open the door.",tone:"😤 Say it firmly, like a parent or teacher.",targets:["ouvre","la","porte"]},
+  {fr:"Ferme la fenêtre.",ipa:"[fɛʁm la fənɛtʁ]",en:"Close the window.",tone:"🥶 Say it like you're cold and need the window closed!",targets:["ferme","la","fenêtre"]},
+  {fr:"Donne-moi ça !",ipa:"[dɔn mwa sa]",en:"Give me that!",tone:"😠 Say it like you're grabbing something back!",targets:["donne","moi","ça"]},
+  {fr:"Attends !",ipa:"[atɑ̃]",en:"Wait!",tone:"😮 Say it quickly — like you're stopping someone!",targets:["attends"]},
+  {fr:"Viens ici.",ipa:"[vjɛ̃ isi]",en:"Come here.",tone:"🤗 Warm and inviting — like calling a child or friend.",targets:["viens","ici"]},
+  {fr:"Ça va ?",ipa:"[sa va]",en:"How are you? / Is it okay?",tone:"😊 Light, casual, friendly — this is the most French greeting!",targets:["ça","va"]},
+  {fr:"Je suis fatigué(e).",ipa:"[ʒə sɥi fatige]",en:"I am tired.",tone:"😴 Say it with a sigh — exhausted energy!",targets:["je","suis","fatigué"]},
+  {fr:"Je ne sais pas.",ipa:"[ʒə nə sɛ pa]",en:"I don't know.",tone:"🤷 Shrug + say it — a classic French expression!",targets:["je","sais","pas"]},
+  {fr:"Je n'aime pas ça.",ipa:"[ʒə nɛm pa sa]",en:"I don't like that.",tone:"😒 Honest and direct — say it like you mean it!",targets:["j'aime","pas","ça"]},
+  {fr:"Tu peux répéter ?",ipa:"[ty pø ʁepete]",en:"Can you repeat?",tone:"😕 Politely confused — your lifeline in France!",targets:["tu","peux","répéter"]},
+  {fr:"J'ai faim !",ipa:"[ʒe fɛ̃]",en:"I'm hungry!",tone:"🍽️ Dramatic and expressive — like you haven't eaten in hours!",targets:["j'ai","faim"]},
+  {fr:"J'ai soif.",ipa:"[ʒe swaf]",en:"I'm thirsty.",tone:"🥤 Tired and dry — say it slowly.",targets:["j'ai","soif"]},
+  {fr:"Merci beaucoup !",ipa:"[mɛʁsi boku]",en:"Thank you very much!",tone:"🥰 Warm and genuine — make it feel heartfelt!",targets:["merci","beaucoup"]}
+];
+
+const NEG_DEMOS=[
+  {pos:"Je parle français.",neg:"Je ne parle pas français.",posEn:"I speak French.",negEn:"I don't speak French."},
+  {pos:"J'aime la musique.",neg:"Je n'aime pas la musique.",posEn:"I like music.",negEn:"I don't like music.",note:"ne → n' before vowel!"},
+  {pos:"Il sait la réponse.",neg:"Il ne sait pas la réponse.",posEn:"He knows the answer.",negEn:"He doesn't know the answer."},
+  {pos:"Nous habitons à Paris.",neg:"Nous n'habitons pas à Paris.",posEn:"We live in Paris.",negEn:"We don't live in Paris.",note:"ne → n' before vowel!"},
+  {pos:"Elle veut venir.",neg:"Elle ne veut pas venir.",posEn:"She wants to come.",negEn:"She doesn't want to come."}
+];
+
+const NEG_FILLS=[
+  {before:"Je ",ne_blank:"ne",verb:"mange",pas_blank:"pas",after:" de chocolat.",correct_ne:"ne",correct_pas:"pas"},
+  {before:"Il ",ne_blank:"n'",verb:"arrive",pas_blank:"pas",after:" à l'heure.",correct_ne:"n'",correct_pas:"pas",note:"Before 'arrive' (vowel): n'"},
+  {before:"Nous ",ne_blank:"ne",verb:"parlons",pas_blank:"pas",after:" espagnol.",correct_ne:"ne",correct_pas:"pas"},
+  {before:"Tu ",ne_blank:"n'",verb:"habites",pas_blank:"pas",after:" ici.",correct_ne:"n'",correct_pas:"pas",note:"Before 'habites' (vowel): n'"}
+];
+
+const HOBBIES=[
+  {ico:"⚽",fr:"le football",sentence:"Je fais du football.",en:"I play football.",note:"Masc. → du football"},
+  {ico:"🎵",fr:"la musique",sentence:"Je fais de la musique.",en:"I make music.",note:"Fem. → de la musique"},
+  {ico:"🎮",fr:"les jeux vidéo",sentence:"Je joue aux jeux vidéo.",en:"I play video games.",note:"jouer aux jeux vidéo"},
+  {ico:"💃",fr:"la danse",sentence:"Je fais de la danse.",en:"I dance.",note:"Fem. → de la danse"},
+  {ico:"📚",fr:"la lecture",sentence:"Je fais de la lecture.",en:"I read.",note:"Fem. → de la lecture"},
+  {ico:"🎨",fr:"le dessin",sentence:"Je fais du dessin.",en:"I draw.",note:"Masc. → du dessin"},
+  {ico:"🎬",fr:"le cinéma",sentence:"Je vais au cinéma.",en:"I go to the cinema.",note:"aller au cinéma"},
+  {ico:"🏊",fr:"la natation",sentence:"Je fais de la natation.",en:"I swim.",note:"Fem. → de la natation"},
+  {ico:"📸",fr:"la photo",sentence:"Je fais de la photo.",en:"I do photography.",note:"Fem. → de la photo"}
+];
+
+const FAIRE_ROWS=[
+  {pr:"Je",form:"fais du sport.",say:"je fais du sport"},
+  {pr:"Tu",form:"fais de la danse ?",say:"tu fais de la danse"},
+  {pr:"Il/Elle",form:"fait de la musique.",say:"il fait de la musique"},
+  {pr:"Nous",form:"faisons du football.",say:"nous faisons du football"},
+  {pr:"Vous",form:"faites de la natation.",say:"vous faites de la natation"},
+  {pr:"Ils/Elles",form:"font du dessin.",say:"ils font du dessin"}
+];
+
+const FILLERS=[
+  {fr:"Euh…",en:"Um… / Er…",use:"thinking filler"},
+  {fr:"Ben…",en:"Well…",use:"hesitation"},
+  {fr:"Ah bon ?",en:"Oh really?",use:"surprise"},
+  {fr:"Oh là là !",en:"Oh wow!",use:"shock / amazement"},
+  {fr:"Sérieux ?",en:"Seriously?",use:"disbelief"},
+  {fr:"D'accord.",en:"Okay / Agreed.",use:"agreement"},
+  {fr:"Hmm…",en:"Hmm…",use:"thinking"},
+  {fr:"Tu sais…",en:"You know…",use:"common filler"},
+  {fr:"C'est vrai !",en:"That's true!",use:"confirmation"},
+  {fr:"Voilà !",en:"There you go!",use:"completion"}
+];
+
+const DIALOGUES=[
+  {
+    scene:"👫 Scene: Two classmates, Kofi and Léa, talk about hobbies at school.",
+    lines:[
+      {sp:"A",name:"Kofi",av:"da1",bbl:"bb1",fr:"Léa, tu fais quoi comme hobby ?",en:"Léa, what do you do as a hobby?",emo:"🤔 Curious",fill:""},
+      {sp:"B",name:"Léa",av:"da2",bbl:"bb2",fr:"Euh… je fais de la danse ! Et toi ?",en:"Um… I dance! And you?",emo:"😊 Happy",fill:"Euh = um (thinking filler)"},
+      {sp:"A",name:"Kofi",av:"da1",bbl:"bb1",fr:"Moi, je fais du football. Mais je n'aime pas la lecture — c'est ennuyeux !",en:"Me, I play football. But I don't like reading — it's boring!",emo:"😤 Honest",fill:"Negation: je n'aime pas"},
+      {sp:"B",name:"Léa",av:"da2",bbl:"bb2",fr:"Ah bon ?! Sérieux ? Moi, j'adore la lecture !",en:"Oh really?! Seriously? I love reading!",emo:"😲 Surprised",fill:"Ah bon = oh really · Sérieux = seriously"},
+      {sp:"A",name:"Kofi",av:"da1",bbl:"bb1",fr:"Oh là là… on est très différents, toi et moi !",en:"Oh wow… we are very different, you and I!",emo:"😄 Amused",fill:"Oh là là = wow/shock"}
+    ]
+  },
+  {
+    scene:"🏠 Scene: At home — Mama and Aminata (daughter) in the kitchen.",
+    lines:[
+      {sp:"B",name:"Mama",av:"da3",bbl:"bb3",fr:"Aminata ! Viens ici — j'ai besoin d'aide !",en:"Aminata! Come here — I need help!",emo:"😤 Firm",fill:"Viens ici = come here (command)"},
+      {sp:"A",name:"Aminata",av:"da2",bbl:"bb2",fr:"Attends, maman ! Je fais mes devoirs !",en:"Wait, mum! I'm doing my homework!",emo:"😩 Busy",fill:"Attends = wait! (command)"},
+      {sp:"B",name:"Mama",av:"da3",bbl:"bb3",fr:"Tu peux répéter ? Je n'entends pas !",en:"Can you repeat? I can't hear!",emo:"😕 Confused",fill:"Tu peux répéter = can you repeat?"},
+      {sp:"A",name:"Aminata",av:"da2",bbl:"bb2",fr:"JE FAIS MES DEVOIRS ! J'ai faim aussi !",en:"I'M DOING MY HOMEWORK! I'm also hungry!",emo:"😭 Stressed",fill:"J'ai faim = I'm hungry"},
+      {sp:"B",name:"Mama",av:"da3",bbl:"bb3",fr:"D'accord, d'accord. Viens manger alors !",en:"Okay, okay. Come eat then!",emo:"🤗 Warm",fill:"D'accord = okay/agreed · alors = then/so"}
+    ]
+  }
+];
+
+const DICT_SENTENCES=[
+  {fr:"Je fais du football tous les jours.",en:"I play football every day.",targets:["je","fais","du","football","tous","les","jours"]},
+  {fr:"Il ne parle pas anglais.",en:"He doesn't speak English.",targets:["il","ne","parle","pas","anglais"]},
+  {fr:"Nous n'aimons pas les jeux vidéo.",en:"We don't like video games.",targets:["nous","n'aimons","pas","les","jeux","vidéo"]},
+  {fr:"Tu fais de la danse avec tes amis ?",en:"Do you dance with your friends?",targets:["tu","fais","de","la","danse","avec","tes","amis"]},
+  {fr:"J'ai faim et je suis très fatigué.",en:"I'm hungry and I'm very tired.",targets:["j'ai","faim","et","je","suis","très","fatigué"]}
+];
+
+const SB_TASKS=[
+  {starter:"Je fais…",hint:"Add your hobby + how often + where + with whom",example:"Je fais de la musique tous les soirs dans ma chambre avec mes amis.",checks:{hasAdv:/souvent|tous|parfois|rarement|toujours/i,hasPlace:/dans|à|chez|avec/i}},
+  {starter:"Je n'aime pas…",hint:"Say what you don't like + why + what you prefer",example:"Je n'aime pas les jeux vidéo — c'est ennuyeux. Je préfère la lecture.",checks:{hasNeg:/ne.*pas|n'.*pas/i,hasReason:/parce que|c'est|car/i}},
+  {starter:"Chez moi…",hint:"Describe your home life + activities + who is there",example:"Chez moi, nous faisons souvent de la musique. Ma famille est grande.",checks:{hasVerb:/faisons|faites|font|habite|aime|est/i,hasWho:/ma|mon|mes|nous|famille|père|mère/i}},
+  {starter:"Dans ma ville…",hint:"Describe your neighbourhood + what people do there",example:"Dans ma ville, il y a beaucoup de parcs. Les gens font du sport le week-end.",checks:{hasPlace:/il y a|dans|avec|au|à/i,hasPeople:/les gens|on|nous|les enfants/i}}
+];
+
+const MIRRORS=[
+  {fr:"Je fais souvent du football avec mes amis.",en:"I often play football with my friends.",note:"Souvent = often. Add frequency to sound more natural!"},
+  {fr:"Je n'aime pas la lecture — c'est ennuyeux !",en:"I don't like reading — it's boring!",note:"Negation + reaction. Sound honest and direct!"},
+  {fr:"Où sont les toilettes, s'il vous plaît ?",en:"Where are the toilets, please?",note:"Add s'il vous plaît for politeness — always better!"},
+  {fr:"Il ne parle pas anglais mais il parle très bien français !",en:"He doesn't speak English but he speaks French very well!",note:"Contrast with mais (but) — great sentence structure!"},
+  {fr:"Nous faisons parfois de la musique ensemble.",en:"We sometimes make music together.",note:"Faisons = nous form of faire. Parfois = sometimes."},
+  {fr:"J'ai très faim — je n'ai pas mangé aujourd'hui !",en:"I'm very hungry — I haven't eaten today!",note:"Strong emotion + negation. Very natural French!"},
+  {fr:"Attends ! Je suis fatigué et j'ai besoin de repos.",en:"Wait! I'm tired and I need to rest.",note:"Command + description. J'ai besoin de = I need."},
+  {fr:"Tu fais quoi comme hobby en dehors de l'école ?",en:"What do you do as a hobby outside of school?",note:"Natural conversation question. En dehors de = outside of."},
+  {fr:"Elle fait de la danse le samedi et du dessin le dimanche.",en:"She dances on Saturdays and draws on Sundays.",note:"Two hobbies + days of the week!"},
+  {fr:"Je ne sais pas — tu peux répéter s'il te plaît ?",en:"I don't know — can you repeat please?",note:"Two essential survival phrases together!"},
+  {fr:"Mon frère fait du football mais il n'est pas très sportif.",en:"My brother plays football but he's not very sporty.",note:"Describing family + negation + adjective!"},
+  {fr:"Viens ici ! Donne-moi ça ! J'ai soif !",en:"Come here! Give me that! I'm thirsty!",note:"Three commands/expressions. Feel the urgency!"},
+  {fr:"J'aime beaucoup la musique — c'est passionnant !",en:"I really like music — it's fascinating!",note:"Beaucoup = a lot. C'est passionnant = it's fascinating."},
+  {fr:"Nous n'habitons pas loin — on est à dix minutes à pied.",en:"We don't live far — we're ten minutes by foot.",note:"Negation + location. Très utile (very useful)!"},
+  {fr:"Oh là là ! Tu fais du sport tous les jours ? C'est incroyable !",en:"Oh wow! You do sport every day? That's incredible!",note:"Emotional reaction + question. Sound genuinely surprised!"}
+];
+
+const DRAG_EXERCISES=[
+  {words:["je","ne","parle","pas","espagnol"],answer:["je","ne","parle","pas","espagnol"],en:"I don't speak Spanish."},
+  {words:["elle","n'","aime","pas","la","danse"],answer:["elle","n'","aime","pas","la","danse"],en:"She doesn't like dancing."},
+  {words:["nous","ne","faisons","pas","de","sport"],answer:["nous","ne","faisons","pas","de","sport"],en:"We don't do sport."}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let curSec=1,cTimer=null;
+let blobs={},mediaRecs={};
+let timerInterval=null,timerSec=180,timerOn=false;
+let dragState=[{placed:[]},{placed:[]},{placed:[]}];
+let negFillDone=false;
+let scores={speaking:0,negation:0,hobbies:0,dictation:0,writing:0,mirror:0};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let activeRec=null;
+
+// ============================================================
+// SPEECH
+// ============================================================
+function getVoice(){const vs=window.speechSynthesis.getVoices();return vs.find(v=>v.lang==='fr-FR')||vs.find(v=>v.lang.startsWith('fr'))||null;}
+function spkText(t,btn,rate){
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  const v=getVoice();if(v)u.voice=v;u.lang='fr-FR';u.rate=rate||0.82;u.pitch=1.02;
+  if(btn&&btn.classList){btn.classList.add('playing');u.onend=()=>btn.classList.remove('playing');}
+  window.speechSynthesis.speak(u);
+}
+
+// ============================================================
+// STT
+// ============================================================
+function startSTT(btnId,resId,fbId,targets,id){
+  if(!SR){const el=document.getElementById(resId);if(el)el.innerHTML='❌ Speech recognition requires Chrome browser.';return;}
+  const btn=document.getElementById(btnId);if(!btn)return;
+  if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
+  if(btn.classList.contains('on')){btn.classList.remove('on');btn.textContent='🎤 Speak';return;}
+  const resEl=document.getElementById(resId),wfId='wf_'+btnId;const wfEl=document.getElementById(wfId);
+  if(resEl){resEl.innerHTML='🎙️ Listening... speak clearly!';resEl.classList.add('listening');}
+  if(wfEl)wfEl.classList.add('active');
+  btn.classList.add('on');btn.textContent='⏹ Stop';
+  const rec=new SR();activeRec=rec;rec.lang='fr-FR';rec.continuous=false;rec.interimResults=true;
+  rec.onresult=e=>{let heard='';for(let i=e.resultIndex;i<e.results.length;i++)heard+=e.results[i][0].transcript;
+    if(resEl){resEl.classList.remove('listening');showSTTResult(heard.trim(),targets,resEl,fbId,id);}
+    if(wfEl)wfEl.classList.remove('active');
+  };
+  rec.onerror=e=>{if(resEl){resEl.classList.remove('listening');resEl.innerHTML='Couldn\'t hear — try again!';}if(wfEl)wfEl.classList.remove('active');btn.classList.remove('on');btn.textContent='🎤 Speak';};
+  rec.onend=()=>{btn.classList.remove('on');btn.textContent='🎤 Speak';if(wfEl)wfEl.classList.remove('active');if(resEl)resEl.classList.remove('listening');};
+  try{rec.start();}catch(e){btn.classList.remove('on');btn.textContent='🎤 Speak';}
+}
+
+function showSTTResult(heard,targets,resEl,fbId,id){
+  const h=heard.toLowerCase().replace(/[.,!?'àâéèêëîïôùûü]/g,c=>{const m={'à':'a','â':'a','é':'e','è':'e','ê':'e','ë':'e','î':'i','ï':'i','ô':'o','ù':'u','û':'u','ü':'u'};return m[c]||c}).split(/\s+/).filter(w=>w);
+  const t=targets.map(w=>w.toLowerCase().replace(/[.,!?'àâéèêëîïôùûü]/g,c=>{const m={'à':'a','â':'a','é':'e','è':'e','ê':'e','ë':'e','î':'i','ï':'i','ô':'o','ù':'u','û':'u','ü':'u'};return m[c]||c}));
+  let correct=0;
+  const spans=h.map(w=>{const exact=t.some(tw=>tw===w);const near=!exact&&t.some(tw=>sim(w,tw)>0.72);if(exact){correct++;return`<span class="w-ok">${w}</span>`;}if(near){correct+=0.5;return`<span class="w-so">${w}</span>`;}return`<span class="w-bad">${w}</span>`;});
+  const pct=Math.round((correct/t.length)*100);
+  resEl.innerHTML=heard?'You said: '+spans.join(' '):'(No speech detected — try again)';
+  const fb=document.getElementById(fbId);if(!fb)return;fb.classList.add('show');
+  if(pct>=75){fb.className='stt-fb show fb-ex';fb.innerHTML=`🎉 Excellent! ${Math.min(100,pct)}% recognised. Your French is being heard!`;scores.speaking++;confetti();}
+  else if(pct>=45){fb.className='stt-fb show fb-gd';fb.innerHTML=`👍 Good effort! ${pct}% recognised. Listen once more then try again — you're getting there!`;}
+  else{fb.className='stt-fb show fb-try';fb.innerHTML=`💜 Keep trying! Press 🔊 to hear it again, then speak a little slower and clearer. Every attempt counts!`;}
+}
+function sim(a,b){if(a===b)return 1;const la=a.length,lb=b.length;if(!la||!lb)return 0;const m=Array.from({length:la+1},(_,i)=>Array.from({length:lb+1},(_,j)=>i===0?j:j===0?i:0));for(let i=1;i<=la;i++)for(let j=1;j<=lb;j++)m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:1+Math.min(m[i-1][j],m[i][j-1],m[i-1][j-1]);return 1-m[la][lb]/Math.max(la,lb);}
+
+// ============================================================
+// RECORDING
+// ============================================================
+async function dRec(recId,pbId){
+  const btn=document.getElementById(recId);if(!btn)return;
+  if(mediaRecs[recId]&&mediaRecs[recId].state==='recording'){mediaRecs[recId].stop();return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});let chunks=[];const mr=new MediaRecorder(stream);mediaRecs[recId]=mr;
+    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    mr.onstop=()=>{blobs[pbId]=new Blob(chunks,{type:'audio/webm'});stream.getTracks().forEach(t=>t.stop());btn.classList.remove('on');btn.textContent='🎤 Record Again';const pb=document.getElementById(pbId);if(pb)pb.classList.add('show');showCoach('✅ Recorded! Press ▶️ to hear yourself.',3500);};
+    mr.start();btn.classList.add('on');btn.textContent='⏹ Stop';showCoach('🎤 Recording... speak clearly then press Stop.',0);
+  } catch(e){if(btn.classList.contains('on')){btn.classList.remove('on');btn.textContent='🎤 Record Again';}else{btn.classList.add('on');btn.textContent='⏹ Stop';showCoach('🎤 Recording... Press Stop when done.',0);}}
+}
+function pBlob(pbId){if(!blobs[pbId])return;const url=URL.createObjectURL(blobs[pbId]);new Audio(url).play();showCoach('👂 How do you sound? Compare to the native speaker and record again!',4500);}
+
+// ============================================================
+// NAV
+// ============================================================
+function goSec(n){
+  document.getElementById('sec'+curSec).classList.remove('show');
+  curSec=n;document.getElementById('sec'+n).classList.add('show');
+  updDots();document.getElementById('progBar').style.width=(((n-1)/7)*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const msgs=["","🗣️ Speaking Lab! Remember: real French is emotional. Put FEELING into every expression!","🚫 Negation is like a sandwich — NE before the verb, PAS after. Never forget the bread!","⚽ FAIRE is irregular — nous faisons, vous faites, ils font. Memorise these!","💬 Listen to the dialogues. Notice the filler words and emotions — THAT is real French!","🎧 Dictation time! Write exactly what you hear — every accent matters in TCF/TEF!","⏱️ Timed writing! Don't think, just copy fast. Then build your own sentences!","🪞 15 mirror sentences! Listen, repeat, record, hear yourself. Do it until it feels natural!"];
+  if(msgs[n])showCoach(msgs[n],6000);
+}
+function buildDots(){document.getElementById('dotsWrap').innerHTML=[1,2,3,4,5,6,7].map(i=>`<div class="dot ${i===1?'active':''}" id="dot${i}" onclick="goSec(${i})">${i}</div>`).join('');}
+function updDots(){for(let i=1;i<=7;i++){const d=document.getElementById('dot'+i);d.className='dot'+(i<curSec?' done':i===curSec?' active':'');}}
+
+// ============================================================
+// WAVEFORM
+// ============================================================
+function wf(id){return`<div class="waveform" id="${id}">${Array(10).fill(0).map(()=>`<div class="wf-b"></div>`).join('')}</div>`;}
+
+// ============================================================
+// RENDER EXPRESSIONS
+// ============================================================
+function renderExpressions(){
+  document.getElementById('exprCards').innerHTML=EXPRESSIONS.map((e,i)=>`
+    <div class="expr-card">
+      <div style="font-size:.64rem;font-weight:800;color:var(--i);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Expression ${i+1} of ${EXPRESSIONS.length}</div>
+      <div class="expr-fr">${e.fr}</div>
+      <div class="expr-ipa">${e.ipa}</div>
+      <div class="expr-en" id="een${i}" onclick="document.getElementById('een${i}').classList.toggle('show')">${e.en} — tap to reveal 🇬🇧</div>
+      <div class="expr-tone">${e.tone}</div>
+      ${wf('wf_ebtn'+i)}
+      <div class="aud-row">
+        <button class="btn btn-t" style="min-height:40px;padding:0 13px;font-size:.78rem" onclick="spkText('${e.fr.replace(/'/g,"\\'")}',this)">🔊 Hear</button>
+        <button class="btn btn-t" style="min-height:40px;padding:0 13px;font-size:.78rem;background:#0891B2" onclick="spkText('${e.fr.replace(/'/g,"\\'")}',this,0.55)">🐢 Slow</button>
+        <button class="btn btn-mic btn" id="ebtn${i}" style="min-height:40px;padding:0 13px;font-size:.78rem" onclick="startSTT('ebtn${i}','eres${i}','efb${i}',${JSON.stringify(e.targets)},'e${i}')">🎤 Speak</button>
+        <button class="btn-rec btn" id="erec${i}" style="background:var(--gy);color:#fff;min-height:40px;padding:0 12px;font-size:.78rem" onclick="dRec('erec${i}','epb${i}')">🎤 Record</button>
+        <button class="btn-pb" id="epb${i}" style="min-height:40px;padding:0 10px;font-size:.74rem" onclick="pBlob('epb${i}')">▶</button>
+        <button class="redo-btn" onclick="resetExpr(${i})">🔄</button>
+      </div>
+      <div class="stt-box" id="eres${i}">Press 🎤 Speak and say the expression with the right emotion!</div>
+      <div class="stt-fb" id="efb${i}"></div>
+    </div>`).join('');
+}
+function resetExpr(i){const r=document.getElementById('eres'+i);if(r){r.innerHTML='Press 🎤 Speak and say the expression!';r.classList.remove('listening');}const f=document.getElementById('efb'+i);if(f)f.className='stt-fb';}
+
+// ============================================================
+// RENDER NEGATION
+// ============================================================
+function renderNegDemos(){
+  document.getElementById('negDemos').innerHTML=NEG_DEMOS.map((n,i)=>`
+    <div style="margin-bottom:12px">
+      <div class="neg-demo nd-pos">
+        <div class="nd-tag" style="color:var(--gn)">✅ POSITIVE</div>
+        <div class="nd-sent">${n.pos}</div>
+        <div style="font-size:.74px;color:var(--gy);font-size:.74rem;margin-top:3px">${n.posEn}</div>
+      </div>
+      <div style="text-align:center;font-size:1rem;margin:3px 0;color:var(--i)">↓ Add NE…PAS</div>
+      <div class="neg-demo nd-neg">
+        <div class="nd-tag" style="color:var(--r)">🚫 NEGATIVE</div>
+        <div class="nd-sent">${highlightNeg(n.neg)}</div>
+        <div style="font-size:.74rem;color:var(--gy);margin-top:3px">${n.negEn}</div>
+        ${n.note?`<div style="font-size:.72rem;background:var(--gb);color:#92400E;border-radius:6px;padding:3px 8px;margin-top:5px;display:inline-block;font-weight:700">⚠️ ${n.note}</div>`:''}
+      </div>
+      <div class="aud-row">
+        <button class="btn btn-t" style="min-height:38px;padding:0 12px;font-size:.76rem" onclick="spkText('${n.neg.replace(/'/g,"\\'")}',this)">🔊 Hear</button>
+        <button class="btn btn-mic btn" id="nd${i}" style="min-height:38px;padding:0 12px;font-size:.76rem" onclick="startSTT('nd${i}','nr${i}','nf${i}',${JSON.stringify(n.neg.split(' '))},'nd${i}')">🎤 Say It</button>
+        <button class="redo-btn" onclick="document.getElementById('nr${i}').innerHTML='Press 🎤 and say the negative sentence!';document.getElementById('nf${i}').className='stt-fb'">🔄</button>
+      </div>
+      <div class="stt-box" id="nr${i}" style="margin-top:8px;min-height:42px">Press 🎤 and say the negative sentence!</div>
+      <div class="stt-fb" id="nf${i}"></div>
+    </div>`).join('');
+}
+function highlightNeg(s){return s.replace(/\bne\b|\bn'/g,m=>`<span class="ne-hl">${m}</span>`).replace(/\bpas\b/g,`<span class="pas-hl">pas</span>`);}
+
+// DRAG & DROP
+let dragItems={};
+function renderDragEx(){
+  document.getElementById('dragEx').innerHTML=DRAG_EXERCISES.map((ex,i)=>{
+    const shuffled=[...ex.words].sort(()=>Math.random()-.5);
+    dragState[i]={placed:[],remaining:[...shuffled]};
+    return`<div style="background:#fff;border:1.5px solid var(--b);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:.68rem;font-weight:800;color:var(--i);text-transform:uppercase;margin-bottom:6px">Build: ${ex.en}</div>
+      <div class="word-bank" id="bank${i}">${shuffled.map((w,j)=>`<div class="word-chip" id="wc${i}_${j}" draggable="true" ondragstart="dragStart(event,'${i}','${j}','${w}')" onclick="clickWord('${i}','${j}','${w}')">${w}</div>`).join('')}</div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--gy);margin-bottom:5px">Drop here ↓</div>
+      <div class="drop-zone" id="drop${i}" ondragover="ev.preventDefault()" ondrop="dropWord(event,'${i}')"></div>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-gn btn" style="min-height:38px;padding:0 13px;font-size:.76rem" onclick="checkDrag(${i})">✅ Check</button>
+        <button class="redo-btn" onclick="resetDrag(${i})">🔄 Reset</button>
+      </div>
+      <div id="dragfb${i}" style="display:none;margin-top:7px;padding:8px 11px;border-radius:9px;font-size:.78px;font-weight:700;font-size:.78rem"></div>
+    </div>`;
+  }).join('');
+}
+function dragStart(e,ei,wi,word){e.dataTransfer.setData('text',JSON.stringify({ei,wi,word}));}
+function dropWord(e,ei){
+  e.preventDefault();const d=JSON.parse(e.dataTransfer.getData('text'));
+  if(d.ei!==ei)return;addToZone(ei,d.wi,d.word);
+}
+function clickWord(ei,wi,word){addToZone(ei,wi,word);}
+function addToZone(ei,wi,word){
+  const chip=document.getElementById(`wc${ei}_${wi}`);if(!chip||chip.classList.contains('used'))return;
+  chip.classList.add('used');
+  dragState[ei].placed.push({wi,word});
+  const zone=document.getElementById('drop'+ei);
+  const dc=document.createElement('div');dc.className='dropped-chip';dc.dataset.wi=wi;dc.textContent=word+' ×';dc.onclick=()=>removeFromZone(ei,wi,word,dc);
+  zone.appendChild(dc);
+}
+function removeFromZone(ei,wi,word,el){
+  const chip=document.getElementById(`wc${ei}_${wi}`);if(chip)chip.classList.remove('used');
+  dragState[ei].placed=dragState[ei].placed.filter(p=>p.wi!==wi);
+  el.remove();
+}
+function checkDrag(i){
+  const placed=dragState[i].placed.map(p=>p.word);const answer=DRAG_EXERCISES[i].answer;
+  const ok=placed.length===answer.length&&placed.every((w,j)=>w===answer[j]);
+  const fb=document.getElementById('dragfb'+i);fb.style.display='block';
+  if(ok){fb.style.background='#D1FAE5';fb.style.color='#065F46';fb.textContent='🎉 Perfect! Sentence correct: "'+answer.join(' ')+'"';confetti();scores.negation++;spkText(answer.join(' '),null);}
+  else{fb.style.background='#EDE9FE';fb.style.color='#4338CA';fb.textContent='💡 Not quite. Hint: remember NE goes BEFORE the verb and PAS goes AFTER. Try again!';}
+  showCoach(ok?'🏆 Negation correct!':'💡 Remember: NE + VERB + PAS. The verb is always in the middle!',4500);
+}
+function resetDrag(i){
+  const ex=DRAG_EXERCISES[i];const shuffled=[...ex.words].sort(()=>Math.random()-.5);dragState[i]={placed:[],remaining:[...shuffled]};
+  document.getElementById('bank'+i).innerHTML=shuffled.map((w,j)=>`<div class="word-chip" id="wc${i}_${j}" draggable="true" ondragstart="dragStart(event,'${i}','${j}','${w}')" onclick="clickWord('${i}','${j}','${w}')">${w}</div>`).join('');
+  document.getElementById('drop'+i).innerHTML='';document.getElementById('dragfb'+i).style.display='none';
+}
+
+// NEG FILLS
+function renderNegFills(){
+  document.getElementById('negFills').innerHTML=NEG_FILLS.map((f,i)=>`
+    <div class="fill-wrap" id="nfw${i}">
+      <div class="fill-q">${f.before}<input class="fill-inp" id="nne${i}" placeholder="ne/n'" autocomplete="off" autocorrect="off" style="max-width:70px"> ${f.verb} <input class="fill-inp" id="npas${i}" placeholder="pas" autocomplete="off" autocorrect="off" style="max-width:70px">${f.after}</div>
+      ${f.note?`<div style="font-size:.7rem;background:var(--gb);color:#92400E;border-radius:6px;padding:3px 8px;display:inline-block;font-weight:700">💡 ${f.note}</div>`:''}</div>`).join('');
+}
+function checkNegFills(){
+  let ok=0;
+  NEG_FILLS.forEach((f,i)=>{
+    const ne=document.getElementById('nne'+i).value.trim().toLowerCase();
+    const pas=document.getElementById('npas'+i).value.trim().toLowerCase();
+    const neOk=ne===f.correct_ne;const pasOk=pas===f.correct_pas;
+    const both=neOk&&pasOk;
+    document.getElementById('nne'+i).classList.toggle('ok',neOk);document.getElementById('nne'+i).classList.toggle('bad',!neOk);
+    document.getElementById('npas'+i).classList.toggle('ok',pasOk);document.getElementById('npas'+i).classList.toggle('bad',!pasOk);
+    document.getElementById('nfw'+i).classList.toggle('ok',both);document.getElementById('nfw'+i).classList.toggle('bad',!both);
+    if(both)ok++;
+  });
+  const fb=document.getElementById('negFillFb');fb.style.display='block';const all=ok===NEG_FILLS.length;
+  fb.style.background=all?'#D1FAE5':'#EDE9FE';fb.style.color=all?'#065F46':'#4338CA';
+  if(all){fb.textContent='🎉 All correct! You understand NE…PAS negation!';confetti();scores.negation+=2;}
+  else fb.textContent='💡 '+ok+'/'+NEG_FILLS.length+' correct. Tip: when the verb starts with a vowel, use N\' instead of NE. Try again!';
+  showCoach(all?'🏆 Negation mastered!':'💡 Key rule: before a vowel, ne becomes n\'. J\'habite → je n\'habite pas.',4500);
+}
+function resetNegFills(){NEG_FILLS.forEach((_,i)=>{['nne','npas'].forEach(p=>{const inp=document.getElementById(p+i);inp.value='';inp.className='fill-inp';});document.getElementById('nfw'+i).className='fill-wrap';});document.getElementById('negFillFb').style.display='none';}
+
+// NEG MIRRORS
+function renderNegMirrors(){
+  const lines=[NEG_DEMOS[0].neg,NEG_DEMOS[1].neg,NEG_DEMOS[2].neg];
+  document.getElementById('negMirrors').innerHTML=lines.map((l,i)=>`
+    <div style="background:#fff;border-radius:10px;padding:11px 13px;margin-bottom:8px;border:1px solid var(--b)">
+      <div style="font-weight:700;color:var(--dk);font-size:.86rem;margin-bottom:7px">${l}</div>
+      <div class="aud-row" style="gap:5px">
+        <button class="btn btn-t" style="min-height:36px;padding:0 10px;font-size:.73rem" onclick="spkText('${l.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn btn-rec btn" id="nm${i}" style="background:var(--r);color:#fff;min-height:36px;padding:0 10px;font-size:.73rem" onclick="dRec('nm${i}','np${i}')">🎤</button>
+        <button class="btn-pb" id="np${i}" style="min-height:36px;padding:0 9px;font-size:.72rem" onclick="pBlob('np${i}')">▶</button>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// RENDER HOBBIES
+// ============================================================
+function renderFaireTable(){
+  FAIRE_ROWS.forEach((r,i)=>{
+    const cell=document.getElementById('ft'+i);if(!cell)return;
+    cell.innerHTML=`<div class="aud-row" style="margin-top:0;gap:4px">
+      <button class="btn btn-t" style="min-height:34px;padding:0 9px;font-size:.72rem" onclick="spkText('${r.say}',this)">🔊</button>
+      <button class="btn btn-rec btn" id="frec${i}" style="background:var(--gy);color:#fff;min-height:34px;padding:0 9px;font-size:.72rem" onclick="dRec('frec${i}','fpb${i}')">🎤</button>
+      <button class="btn-pb" id="fpb${i}" style="min-height:34px;padding:0 8px;font-size:.7rem" onclick="pBlob('fpb${i}')">▶</button>
+    </div>`;
+  });
+}
+function renderHobbies(){
+  document.getElementById('hobbyGrid').innerHTML=HOBBIES.map((h,i)=>`
+    <div class="hobby-card" onclick="selectHobby(${i},this)">
+      <div class="hc-ico">${h.ico}</div>
+      <div class="hc-fr">${h.fr}</div>
+      <div class="hc-sentence" style="display:none" id="hs${i}">${h.sentence}</div>
+      <div class="hc-en" id="he${i}" onclick="event.stopPropagation();document.getElementById('he${i}').classList.toggle('reveal')">${h.en}</div>
+      <div style="font-size:.62rem;background:var(--tb);color:var(--t);border-radius:5px;padding:2px 7px;margin-top:4px;display:none;font-weight:700" id="hn${i}">${h.note}</div>
+    </div>`).join('');
+}
+function selectHobby(i,el){
+  el.classList.toggle('active');
+  const sent=document.getElementById('hs'+i);const note=document.getElementById('hn'+i);
+  const show=el.classList.contains('active');
+  sent.style.display=show?'block':'none';note.style.display=show?'block':'none';
+  if(show)spkText(HOBBIES[i].sentence,null);
+  showCoach(show?'🎤 Say the sentence out loud! Then record it!':'',show?3000:0);
+}
+function updateHobbyWC(){const t=document.getElementById('hobbySentence').value.trim();document.getElementById('hobbyWC').textContent=(t?t.split(/\s+/).length:0)+' words';}
+function checkHobbySent(){
+  const t=document.getElementById('hobbySentence').value.trim();if(!t){showCoach('✏️ Write your sentence first!',3000);return;}
+  const hasFaire=/je fais|tu fais|il fait|nous faisons|vous faites|ils font/i.test(t);
+  const hasHobby=/football|musique|danse|dessin|lecture|natation|cinéma|sport|jeux/i.test(t);
+  const hasRich=/souvent|parfois|toujours|rarement|avec|dans|très|beaucoup|amusant|passionnant|tous les/i.test(t);
+  let fb='';
+  if(!hasFaire)fb='💡 Remember to use FAIRE! Try: Je fais du... / Je fais de la...';
+  else if(!hasHobby)fb='💡 Add a hobby! Football, danse, musique, lecture...';
+  else if(!hasRich)fb='👍 Good start! Now make it richer — add "souvent" (often), "avec mes amis", or "c\'est amusant!"';
+  else fb='🏆 Excellent! Rich sentence with verb + hobby + details. This is A1 level French!';
+  const fbEl=document.getElementById('hobbyFb');fbEl.classList.add('show');
+  fbEl.style.background=hasRich&&hasFaire&&hasHobby?'#D1FAE5':'#EDE9FE';
+  fbEl.style.color=hasRich&&hasFaire&&hasHobby?'#065F46':'#4338CA';
+  fbEl.textContent=fb;
+  if(hasRich&&hasFaire&&hasHobby){confetti();scores.hobbies++;spkText(t,null,0.82);}
+  showCoach(hasRich?'🌟 Rich sentence! That\'s exactly the level we want.':'💡 Try adding more details — when? where? with whom?',5000);
+}
+
+// ============================================================
+// RENDER DIALOGUES
+// ============================================================
+function renderFillers(){
+  document.getElementById('fillerGrid').innerHTML=FILLERS.map((f,i)=>`
+    <div style="background:#fff;border-radius:11px;padding:10px 12px;cursor:pointer;transition:all .2s;border:1px solid var(--b)" onclick="spkText('${f.fr.replace(/'/g,"\\'")}',null)">
+      <div style="font-weight:800;font-size:.9rem;color:var(--dk)">${f.fr}</div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--i)">${f.en}</div>
+      <div style="font-size:.67rem;color:var(--gy)">${f.use} · 🔊 tap</div>
+    </div>`).join('');
+}
+function renderDialogues(){
+  document.getElementById('dialContent').innerHTML=DIALOGUES.map((d,di)=>`
+    <div style="margin-bottom:20px">
+      <div class="scene-box"><div style="font-size:1.6rem;margin-right:4px">${d.scene.split(' ')[0]}</div><div><div style="font-weight:800;font-size:.88rem;margin-bottom:2px">${d.scene}</div><button class="btn btn-t" style="min-height:34px;padding:0 11px;font-size:.73rem;margin-top:5px" onclick="playDial(${di})">🔊 Play Full</button></div></div>
+      ${d.lines.map((l,li)=>`
+        <div class="dial-bub ${l.sp==='B'?'r':''}">
+          <div class="dav ${l.av}">${l.name[0]}</div>
+          <div class="bbl ${l.bbl}">
+            <div class="bfr">${l.fr}</div>
+            <div class="ben">${l.en}</div>
+            ${l.emo?`<div class="bemo">${l.emo}</div>`:''}
+            ${l.fill?`<div class="bfill">🇫🇷 ${l.fill}</div>`:''}
+            <div class="aud-row" style="margin-top:6px;gap:5px">
+              <button class="btn btn-t" style="min-height:34px;padding:0 9px;font-size:.72rem" onclick="spkText('${l.fr.replace(/'/g,"\\'")}',this)">🔊</button>
+              <button class="btn btn-t" style="min-height:34px;padding:0 9px;font-size:.72rem;background:#0891B2" onclick="spkText('${l.fr.replace(/'/g,"\\'")}',this,0.55)">🐢</button>
+              <button class="btn btn-mic btn" id="dlbtn${di}_${li}" style="min-height:34px;padding:0 9px;font-size:.72rem" onclick="startSTT('dlbtn${di}_${li}','dlres${di}_${li}','dlfb${di}_${li}',${JSON.stringify(l.fr.split(' '))},'dl${di}_${li}')">🎤</button>
+            </div>
+            <div class="stt-box" id="dlres${di}_${li}" style="margin-top:7px;min-height:38px;display:none"></div>
+            <div class="stt-fb" id="dlfb${di}_${li}"></div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+  DIALOGUES.forEach((d,di)=>{d.lines.forEach((_,li)=>{const btn=document.getElementById(`dlbtn${di}_${li}`);if(btn){const orig=btn.onclick;btn.onclick=()=>{document.getElementById(`dlres${di}_${li}`).style.display='flex';if(orig)orig.call(btn);};};});});
+}
+function playDial(di){
+  const lines=DIALOGUES[di].lines;let i=0;
+  function playNext(){if(i>=lines.length)return;spkText(lines[i].fr,null,0.82);setTimeout(()=>{i++;playNext();},lines[i-1].fr.length*80+800);}playNext();
+}
+function renderDialMirrors(){
+  const all=DIALOGUES.flatMap(d=>d.lines).filter((_,i)=>i%2===0).slice(0,5);
+  document.getElementById('dialMirrors').innerHTML=all.map((l,i)=>`
+    <div style="background:#fff;border-radius:10px;padding:11px 13px;margin-bottom:8px;border:1px solid var(--b)">
+      <div style="font-weight:700;color:var(--dk);font-size:.86rem;margin-bottom:6px">${l.fr}</div>
+      <div class="aud-row" style="gap:5px">
+        <button class="btn btn-t" style="min-height:36px;padding:0 10px;font-size:.73rem" onclick="spkText('${l.fr.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn btn-rec btn" id="dmr${i}" style="background:var(--r);color:#fff;min-height:36px;padding:0 10px;font-size:.73rem" onclick="dRec('dmr${i}','dmp${i}')">🎤</button>
+        <button class="btn-pb" id="dmp${i}" style="min-height:36px;padding:0 9px;font-size:.72rem" onclick="pBlob('dmp${i}')">▶</button>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// RENDER DICTATION
+// ============================================================
+let dictDone={};
+function renderDictation(){
+  document.getElementById('dictCards').innerHTML=DICT_SENTENCES.map((d,i)=>`
+    <div class="dict-card">
+      <div style="font-size:.68rem;font-weight:800;color:var(--t);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Dictation ${i+1} of ${DICT_SENTENCES.length}</div>
+      <div class="aud-row" style="margin-bottom:10px">
+        <button class="btn btn-t" style="min-height:40px;padding:0 14px;font-size:.78rem" onclick="spkText('${d.fr.replace(/'/g,"\\'")}',this)">🔊 Listen</button>
+        <button class="btn btn-t" style="min-height:40px;padding:0 14px;font-size:.78rem;background:#0891B2" onclick="spkText('${d.fr.replace(/'/g,"\\'")}',this,0.52)">🐢 Slow</button>
+      </div>
+      <input class="dict-inp" id="di${i}" placeholder="Write what you hear in French..." autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="aud-row" style="margin-top:8px;gap:6px">
+        <button class="btn-gn btn" style="min-height:38px;padding:0 13px;font-size:.76rem" onclick="checkDict(${i})">✅ Check</button>
+        <button class="redo-btn" onclick="resetDict(${i})">🔄 Redo</button>
+      </div>
+      <div id="dib${i}" style="display:none;margin-top:8px;padding:10px 12px;border-radius:10px;font-size:.79rem;font-weight:600;line-height:1.5"></div>
+    </div>`).join('');
+}
+function checkDict(i){
+  const val=document.getElementById('di'+i).value.trim().toLowerCase();const target=DICT_SENTENCES[i].fr.toLowerCase();
+  const ok=val===target;const close=lev(val.replace(/[àâéèêëîïôùûü]/g,c=>({à:'a',â:'a',é:'e',è:'e',ê:'e',ë:'e',î:'i',ï:'i',ô:'o',ù:'u',û:'u',ü:'u'}[c]||c)),target.replace(/[àâéèêëîïôùûü]/g,c=>({à:'a',â:'a',é:'e',è:'e',ê:'e',ë:'e',î:'i',ï:'i',ô:'o',ù:'u',û:'u',ü:'u'}[c]||c)))<5;
+  const inp=document.getElementById('di'+i);inp.classList.toggle('ok',ok||close);inp.classList.toggle('bad',!ok&&!close);
+  const fb=document.getElementById('dib'+i);fb.style.display='block';
+  if(ok){fb.style.background='#D1FAE5';fb.style.color='#065F46';fb.textContent='🎉 Perfect! Exact match.';scores.dictation++;dictDone[i]=true;confetti();}
+  else if(close){fb.style.background='#EDE9FE';fb.style.color='#4338CA';fb.textContent='💜 Very close! Check accents: é è ê à ù û etc. Expected: "'+DICT_SENTENCES[i].fr+'"';}
+  else{fb.style.background='#FEF3C7';fb.style.color='#92400E';fb.textContent='💡 Not quite. Listen again carefully. Expected: "'+DICT_SENTENCES[i].fr+'"';}
+  showCoach(ok?'🏆 Dictation correct!':'💡 Accents matter in TCF/TEF! é ≠ e. Listen again slowly.',4000);
+}
+function resetDict(i){const inp=document.getElementById('di'+i);inp.value='';inp.className='dict-inp';document.getElementById('dib'+i).style.display='none';delete dictDone[i];}
+function lev(a,b){const m=Array.from({length:a.length+1},(_,i)=>Array.from({length:b.length+1},(_,j)=>i===0?j:j===0?i:0));for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=a[i-1]===b[j-1]?m[i-1][j-1]:1+Math.min(m[i-1][j],m[i][j-1],m[i-1][j-1]);return m[a.length][b.length];}
+
+// ============================================================
+// TIMED WRITING
+// ============================================================
+function startTimer(){
+  if(timerOn)return;timerOn=true;
+  document.getElementById('timerStart').textContent='⏱️ Running...';document.getElementById('timerStart').disabled=true;
+  document.getElementById('timerReset').style.display='inline-flex';
+  showCoach('⏱️ Timer started! Copy the paragraph as accurately as possible. Every accent counts!',5000);
+  timerInterval=setInterval(()=>{
+    timerSec--;const m=Math.floor(timerSec/60),s=timerSec%60;
+    document.getElementById('timerDisp').textContent=m+':'+(s<10?'0':'')+s;
+    document.getElementById('timerFill').style.width=(timerSec/180*100)+'%';
+    if(timerSec<=30)document.getElementById('timerDisp').classList.add('urgent');
+    if(timerSec<=0){clearInterval(timerInterval);timerOn=false;document.getElementById('timerDisp').textContent='0:00';document.getElementById('timerStart').textContent='✅ Time Up!';checkTimedResult();showCoach('⏱️ Time up! Check your result below.',5000);}
+  },1000);
+}
+function resetTimer(){
+  clearInterval(timerInterval);timerOn=false;timerSec=180;
+  document.getElementById('timerDisp').textContent='3:00';document.getElementById('timerDisp').classList.remove('urgent');
+  document.getElementById('timerFill').style.width='100%';document.getElementById('timerStart').textContent='▶️ Start Timer';
+  document.getElementById('timerStart').disabled=false;document.getElementById('timerReset').style.display='none';
+  document.getElementById('timedResult').style.display='none';document.getElementById('timedArea').value='';updateTimedWC();
+}
+function updateTimedWC(){const t=document.getElementById('timedArea').value.trim();document.getElementById('timedWC').textContent=(t?t.split(/\s+/).length:0)+' words';}
+function checkTimedResult(){
+  const typed=document.getElementById('timedArea').value.trim();const target=document.getElementById('timedTarget').textContent.trim();
+  const wc=typed?typed.split(/\s+/).length:0;const accuracy=Math.round((1-lev(typed.toLowerCase(),target.toLowerCase())/Math.max(typed.length,target.length))*100);
+  const res=document.getElementById('timedResult');res.style.display='block';
+  res.innerHTML=`<div style="background:${accuracy>=80?'#D1FAE5':'#FEF3C7'};border-radius:12px;padding:13px;font-size:.82rem;color:${accuracy>=80?'#065F46':'#92400E'}">
+    <strong>${accuracy>=80?'🎉 Excellent!':accuracy>=60?'👍 Good effort!':'💡 Keep practising!'}</strong><br>
+    Words typed: ${wc} · Accuracy: ${accuracy}%<br>
+    ${accuracy<90?'💡 Check your accents (é, è, à, û, î etc.) — they count in TCF/TEF!':'🏆 Near-perfect accuracy — impressive!'}
+  </div>`;
+  if(accuracy>=70){scores.writing++;confetti();}
+}
+
+// SENTENCE BUILDER
+function renderSentenceBuilder(){
+  document.getElementById('sentenceBuilder').innerHTML=SB_TASKS.map((t,i)=>`
+    <div class="sb-card">
+      <div class="sb-starter">${t.starter}</div>
+      <div class="sb-hint">💡 ${t.hint}</div>
+      <div style="font-size:.73rem;color:var(--gy);margin-bottom:8px;font-style:italic">Example: <em>${t.example}</em></div>
+      <textarea class="sb-inp" id="sb${i}" rows="3" placeholder="Your sentence here..." oninput="updateSBWC('sb${i}','sbwc${i}')"></textarea>
+      <div style="font-size:.68rem;color:var(--gy);text-align:right;margin-top:3px" id="sbwc${i}">0 words</div>
+      <div class="aud-row" style="margin-top:8px;gap:6px">
+        <button class="btn-gn btn" style="min-height:38px;padding:0 13px;font-size:.76rem" onclick="checkSB(${i})">✅ Check</button>
+        <button class="btn btn-t" style="min-height:38px;padding:0 12px;font-size:.76rem" onclick="spkText(document.getElementById('sb${i}').value,this)">🔊 Hear</button>
+        <button class="redo-btn" onclick="document.getElementById('sb${i}').value='';updateSBWC('sb${i}','sbwc${i}');document.getElementById('sbfb${i}').className='sb-fb'">🔄</button>
+      </div>
+      <div class="sb-fb" id="sbfb${i}"></div>
+    </div>`).join('');
+}
+function updateSBWC(id,wcId){const t=document.getElementById(id).value.trim();document.getElementById(wcId).textContent=(t?t.split(/\s+/).length:0)+' words';}
+function checkSB(i){
+  const t=document.getElementById('sb'+i).value.trim();if(!t){showCoach('✏️ Write something first!',3000);return;}
+  const task=SB_TASKS[i];const wc=t?t.split(/\s+/).length:0;
+  const hasAdv=task.checks.hasAdv?.test(t);const hasExtra=Object.values(task.checks).some(check=>check.test(t));
+  const fb=document.getElementById('sbfb'+i);fb.classList.add('show');
+  if(wc>=8&&hasExtra){fb.style.background='#D1FAE5';fb.style.color='#065F46';fb.textContent='🏆 Excellent! Rich sentence with great detail. TCF/TEF-level writing!';scores.writing++;confetti();spkText(t,null,0.82);}
+  else if(wc>=4){fb.style.background='#EDE9FE';fb.style.color='#4338CA';fb.textContent='👍 Good start! Try to add more: where? when? with whom? emotion? Make it RICHER!';}
+  else{fb.style.background='#FEF3C7';fb.style.color='#92400E';fb.textContent='💡 Write more! Try to write at least 8–10 words. Use the example as a guide.';}
+  showCoach(wc>=8?'🌟 Rich sentence! More detail = more marks in TCF/TEF.':'💡 Add more details — souvent, avec, dans, parce que...',5000);
+}
+
+// ============================================================
+// MIRROR CARDS
+// ============================================================
+function renderMirrors(){
+  document.getElementById('mirrorCards').innerHTML=MIRRORS.map((m,i)=>`
+    <div class="mirror-card" id="mir${i}">
+      <div class="mir-num">🪞 Mirror ${i+1} of ${MIRRORS.length}</div>
+      <div class="mir-fr">${m.fr}</div>
+      <div class="mir-en" id="men${i}" onclick="document.getElementById('men${i}').classList.toggle('show')">${m.en} · tap to reveal</div>
+      <div class="mir-note">💡 ${m.note}</div>
+      <div class="aud-row">
+        <button class="btn btn-t" style="min-height:40px;padding:0 13px;font-size:.78rem" onclick="spkText('${m.fr.replace(/'/g,"\\'")}',this)">🔊 Hear</button>
+        <button class="btn btn-t" style="min-height:40px;padding:0 13px;font-size:.78rem;background:#0891B2" onclick="spkText('${m.fr.replace(/'/g,"\\'")}',this,0.55)">🐢 Slow</button>
+        <button class="btn btn-mic btn btn-rec" id="mrec${i}" onclick="dRec('mrec${i}','mpb${i}')">🎤 Record</button>
+        <button class="btn-pb" id="mpb${i}" onclick="pBlob('mpb${i}')">▶️ Hear Me</button>
+        <button class="btn btn-mic btn" id="mstt${i}" style="background:var(--pu,#7C3AED);min-height:40px;padding:0 11px;font-size:.76rem" onclick="startSTT('mstt${i}','mres${i}','mfb${i}',${JSON.stringify(m.fr.split(' '))},'mir${i}')">🎤 STT</button>
+      </div>
+      <div class="stt-box" id="mres${i}" style="display:none;margin-top:9px"></div>
+      <div class="stt-fb" id="mfb${i}"></div>
+    </div>`).join('');
+  MIRRORS.forEach((_,i)=>{const btn=document.getElementById('mstt'+i);if(btn){const orig=btn.onclick;btn.onclick=()=>{document.getElementById('mres'+i).style.display='flex';scores.mirror++;if(orig)orig.call(btn);};};});
+}
+
+// ============================================================
+// COMPLETE
+// ============================================================
+function showComplete(){
+  const sc=[
+    {ico:'🗣️',name:'Speaking Lab',pct:Math.min(100,scores.speaking*7+10),color:'#4F46E5'},
+    {ico:'🚫',name:'Negation',pct:Math.min(100,scores.negation*20+10),color:'#DC2626'},
+    {ico:'⚽',name:'Hobbies + Faire',pct:Math.min(100,scores.hobbies*30+20),color:'#D97706'},
+    {ico:'🎧',name:'Dictation',pct:Math.min(100,scores.dictation*20+10),color:'#0D9488'},
+    {ico:'✍️',name:'Writing',pct:Math.min(100,scores.writing*20+15),color:'#059669'},
+    {ico:'🪞',name:'Mirror Speaking',pct:Math.min(95,scores.mirror*7+10),color:'#7C3AED'}
+  ];
+  document.getElementById('dayScoreCard').innerHTML=`
+    <div style="font-size:.8rem;font-weight:800;color:var(--dk);margin-bottom:12px">📊 Day 7A — Your Progress</div>
+    ${sc.map(s=>`<div class="sk-row"><div class="sk-ico" style="background:${s.color}18">${s.ico}</div><div style="flex:1"><div style="font-size:.77rem;font-weight:700;color:var(--dk);margin-bottom:4px">${s.name}</div><div class="sk-bar"><div class="sk-fill" style="width:${s.pct}%;background:${s.color}"></div></div></div><div style="font-size:.78rem;font-weight:800;color:${s.color};min-width:35px;text-align:right">${s.pct}%</div></div>`).join('')}
+    <div style="margin-top:14px;background:linear-gradient(135deg,var(--ib),var(--tl));border-radius:12px;padding:13px;text-align:center">
+      <div style="font-size:1.8rem;margin-bottom:5px">🏆</div>
+      <div style="font-size:.88rem;font-weight:800;color:var(--dk);margin-bottom:4px">Day 7A Complete!</div>
+      <div style="font-size:.75rem;color:var(--gy);line-height:1.5">Everyday expressions · ne…pas negation · Faire + hobbies · Real dialogues · Dictation · Timed writing · 15 mirror sentences</div>
+    </div>`;
+  confetti();showCoach('🏆 Day 7A DONE! Negation, faire, hobbies, and real French expressions — you are building real fluency now!',9000);
+  document.getElementById('dayScoreCard').scrollIntoView({behavior:'smooth'});
+}
+function copyBest(){
+  const texts=[document.getElementById('hobbySentence')?.value,...Array.from({length:4},(_,i)=>document.getElementById('sb'+i)?.value)].filter(t=>t&&t.trim().length>20);
+  const best=texts.sort((a,b)=>b.length-a.length)[0]||'No sentences written yet.';
+  navigator.clipboard.writeText(best).then(()=>{document.getElementById('copyFb').style.display='block';confetti();}).catch(()=>{document.getElementById('copyFb').textContent='Select your text manually and copy it.';document.getElementById('copyFb').style.display='block';});
+}
+
+// ============================================================
+// CONFETTI + COACH
+// ============================================================
+function confetti(){
+  const box=document.getElementById('cfWrap');box.style.display='block';box.innerHTML='';
+  const colors=['#4F46E5','#7C3AED','#0D9488','#D97706','#059669','#DC2626','#FCD34D'];
+  for(let i=0;i<40;i++){const cf=document.createElement('div');cf.className='cf';cf.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*.8}s;animation-duration:${1.5+Math.random()}s`;box.appendChild(cf);}
+  setTimeout(()=>{box.style.display='none';box.innerHTML='';},3000);
+}
+function showCoach(msg,dur){const el=document.getElementById('coachMsg');el.textContent=msg;el.classList.add('show');if(cTimer)clearTimeout(cTimer);if(dur>0)cTimer=setTimeout(()=>el.classList.remove('show'),dur);}
+function toggleCoach(){const el=document.getElementById('coachMsg');const msgs=["🗣️ Speaking every day — even badly — is the fastest path to fluency!","🚫 NE before the verb, PAS after. Never forget the bread in the sandwich!","⚽ FAIRE is irregular: nous faisons, vous faites, ils font. Memorise these!","💬 Filler words like Euh... and Ah bon? make your French sound natural!","🎧 Accents are not decoration — é ≠ e. They change pronunciation AND meaning!","✍️ Rich sentences = more marks in TCF/TEF. Always add when, where, with whom!","💜 Mistakes are how your brain learns French. Be brave and speak!"];if(el.classList.contains('show'))el.classList.remove('show');else showCoach(msgs[Math.floor(Math.random()*msgs.length)],5000);}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+  buildDots();
+  renderExpressions();
+  renderNegDemos();renderDragEx();renderNegFills();renderNegMirrors();
+  renderFaireTable();renderHobbies();
+  renderFillers();renderDialogues();renderDialMirrors();
+  renderDictation();
+  renderSentenceBuilder();
+  renderMirrors();
+  setTimeout(()=>showCoach('🗣️ Welcome to Day 7A! Today — real everyday French, negation, hobbies with FAIRE, emotional dialogues, dictation, and 15 mirror sentences. You will be SPEAKING the whole time!',8000),800);
+});
+</script>
+</body>
+</html>
